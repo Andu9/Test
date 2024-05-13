@@ -1,135 +1,118 @@
-#include <iostream>
-#include <array>
-#include <chrono>
-#include <thread>
-
-#include <SFML/Graphics.hpp>
-
-#include <Helper.h>
-
-//////////////////////////////////////////////////////////////////////
-/// NOTE: this include is needed for environment-specific fixes     //
-/// You can remove this include and the call from main              //
-/// if you have tested on all environments, and it works without it //
-#include "env_fixes.h"                                              //
-//////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////
-/// This class is used to test that the memory leak checks work as expected even when using a GUI
-class SomeClass {
-public:
-    explicit SomeClass(int) {}
-};
-
-SomeClass *getC() {
-    return new SomeClass{2};
-}
-//////////////////////////////////////////////////////////////////////
-
+#include "GoldenCarrot.h"
+#include "Player.h"
+#include "Collision.h"
+#include "Arrow.h"
+#include "Cannonball.h"
+#include "Saw.h"
 
 int main() {
-    ////////////////////////////////////////////////////////////////////////
-    /// NOTE: this function call is needed for environment-specific fixes //
-    init_threads();                                                       //
-    ////////////////////////////////////////////////////////////////////////
-    ///
-    std::cout << "Hello, world!\n";
-    std::array<int, 100> v{};
-    int nr;
-    std::cout << "Introduceți nr: ";
-    /////////////////////////////////////////////////////////////////////////
-    /// Observație: dacă aveți nevoie să citiți date de intrare de la tastatură,
-    /// dați exemple de date de intrare folosind fișierul tastatura.txt
-    /// Trebuie să aveți în fișierul tastatura.txt suficiente date de intrare
-    /// (în formatul impus de voi) astfel încât execuția programului să se încheie.
-    /// De asemenea, trebuie să adăugați în acest fișier date de intrare
-    /// pentru cât mai multe ramuri de execuție.
-    /// Dorim să facem acest lucru pentru a automatiza testarea codului, fără să
-    /// mai pierdem timp de fiecare dată să introducem de la zero aceleași date de intrare.
-    ///
-    /// Pe GitHub Actions (bife), fișierul tastatura.txt este folosit
-    /// pentru a simula date introduse de la tastatură.
-    /// Bifele verifică dacă programul are erori de compilare, erori de memorie și memory leaks.
-    ///
-    /// Dacă nu puneți în tastatura.txt suficiente date de intrare, îmi rezerv dreptul să vă
-    /// testez codul cu ce date de intrare am chef și să nu pun notă dacă găsesc vreun bug.
-    /// Impun această cerință ca să învățați să faceți un demo și să arătați părțile din
-    /// program care merg (și să le evitați pe cele care nu merg).
-    ///
-    /////////////////////////////////////////////////////////////////////////
-    std::cin >> nr;
-    /////////////////////////////////////////////////////////////////////////
-    for(int i = 0; i < nr; ++i) {
-        std::cout << "v[" << i << "] = ";
-        std::cin >> v[i];
-    }
-    std::cout << "\n\n";
-    std::cout << "Am citit de la tastatură " << nr << " elemente:\n";
-    for(int i = 0; i < nr; ++i) {
-        std::cout << "- " << v[i] << "\n";
-    }
-    ///////////////////////////////////////////////////////////////////////////
-    /// Pentru date citite din fișier, NU folosiți tastatura.txt. Creați-vă voi
-    /// alt fișier propriu cu ce alt nume doriți.
-    /// Exemplu:
-    /// std::ifstream fis("date.txt");
-    /// for(int i = 0; i < nr2; ++i)
-    ///     fis >> v2[i];
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    ///                Exemplu de utilizare cod generat                     ///
-    ///////////////////////////////////////////////////////////////////////////
-    Helper helper;
-    helper.help();
-    ///////////////////////////////////////////////////////////////////////////
 
-    SomeClass *c = getC();
-    std::cout << c << "\n";
-    delete c;
+    sf::RenderWindow window(sf::VideoMode(1044, 585), "Poor bunny!", sf::Style::Default);
+    Player player{window};
+    window.setFramerateLimit(60);
 
-    sf::RenderWindow window;
-    ///////////////////////////////////////////////////////////////////////////
-    /// NOTE: sync with env variable APP_WINDOW from .github/workflows/cmake.yml:31
-    window.create(sf::VideoMode({800, 700}), "My Window", sf::Style::Default);
-    ///////////////////////////////////////////////////////////////////////////
-    //
-    ///////////////////////////////////////////////////////////////////////////
-    /// NOTE: mandatory use one of vsync or FPS limit (not both)            ///
-    /// This is needed so we do not burn the GPU                            ///
-    window.setVerticalSyncEnabled(true);                            ///
-    /// window.setFramerateLimit(60);                                       ///
-    ///////////////////////////////////////////////////////////////////////////
+    Arrow currentArrow(window);
 
-    while(window.isOpen()) {
-        bool shouldExit = false;
-        sf::Event e{};
-        while(window.pollEvent(e)) {
-            switch(e.type) {
-            case sf::Event::Closed:
+    Carrot currentCarrot(window, 1);
+    GoldenCarrot goldenCarrot(window);
+
+    std::array<Thing, 8> platforms;
+
+    CannonBall a, x;
+    a.spawn(), x.spawn();
+
+    Saw b;
+    b.spawn();
+
+    Saw c;
+    c.spawn();
+    c.setPosition();
+
+    std::cout << c.getSize().x << ' ' << c.getSize().y << '\n';
+
+    platforms[0] = Thing(sf::Vector2f{54, 27}, sf::Vector2f{225, 358});
+    platforms[1] = Thing(sf::Vector2f{111, 27}, sf::Vector2f{472, 358});
+    platforms[2] = Thing(sf::Vector2f{54, 27}, sf::Vector2f{757, 358});
+
+    platforms[3] = Thing(sf::Vector2f{115, 27}, sf::Vector2f{290, 237});
+    platforms[4] = Thing(sf::Vector2f{115, 27}, sf::Vector2f{640, 237});
+
+    platforms[5] = Thing(sf::Vector2f{54, 27}, sf::Vector2f{225, 114});
+    platforms[6] = Thing(sf::Vector2f{111, 27}, sf::Vector2f{472, 114});
+    platforms[7] = Thing(sf::Vector2f{54, 27}, sf::Vector2f{757, 114});
+
+    while (window.isOpen()) {
+        sf::Event event{};
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
-                break;
-            case sf::Event::Resized:
-                std::cout << "New width: " << window.getSize().x << '\n'
-                          << "New height: " << window.getSize().y << '\n';
-                break;
-            case sf::Event::KeyPressed:
-                std::cout << "Received key " << (e.key.code == sf::Keyboard::X ? "X" : "(other)") << "\n";
-                if(e.key.code == sf::Keyboard::Escape)
-                    shouldExit = true;
-                break;
-            default:
-                break;
+            } else if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Escape) {
+                    window.close();
+                }
             }
         }
-        if(shouldExit) {
-            window.close();
-            break;
-        }
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(300ms);
 
         window.clear();
+
+        currentCarrot.setPosition();
+        currentCarrot.draw(window);
+
+        for (auto& platform: platforms) {
+            platform.setPosition();
+            platform.draw(window);
+        }
+
+        currentArrow.move(window);
+        currentArrow.setPosition();
+        currentArrow.draw(window);
+
+        goldenCarrot.setPosition();
+        goldenCarrot.draw(window);
+
+        player.move(window, platforms);
+        player.setPosition();
+        player.draw(window);
+
+        for (auto& platform: platforms) {
+            platform.setPosition();
+            platform.draw(window);
+        }
+
+        if (player.checkCollision(currentCarrot)) {
+            player.increaseScore(currentCarrot.getScore());
+            currentCarrot.resetCoordinates(window);
+
+            std::cout << "Scor: " << player.getScore() << '\n';
+        }
+
+        if (player.checkCollision(goldenCarrot)) {
+            player.increaseScore(goldenCarrot.getScore());
+            goldenCarrot.isTaken();
+
+            std::cout << "Scor: " << player.getScore() << '\n';
+        }
+
+        if (player.checkCollision(currentArrow)) {
+            player.decreaseHealth(currentArrow.getDamage());
+            currentArrow.resetCoordinates(window);
+
+            if (player.getHealth() <= 0) {
+                window.close();
+            }
+
+            std::cout << "Viata: " << player.getHealth() << '\n';
+        }
+
+        if (player.checkCollision(a)) {
+            player.decreaseHealth(a.getDamage());
+            a.resetCoordinates();
+
+            if (player.getHealth() <= 0) {
+                window.close();
+            }
+        }
+
         window.display();
     }
     return 0;

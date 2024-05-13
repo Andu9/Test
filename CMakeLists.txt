@@ -129,6 +129,28 @@ add_executable(${PROJECT_NAME}
     main.cpp
     generated/src/Helper.cpp
     env_fixes.h
+        generated/include/Arrow.h
+        generated/include/Cannonball.h
+        generated/include/Carrot.h
+        generated/include/Collision.h
+        generated/include/FiniteChoice.h
+        generated/include/GoldenCarrot.h
+        generated/include/MoveableThing.h
+        generated/include/Player.h
+        generated/include/Saw.h
+        generated/include/Thing.h
+        generated/include/Trap.h
+        generated/src/Arrow.cpp
+        generated/src/Cannonball.cpp
+        generated/src/Carrot.cpp
+        generated/src/Collision.cpp
+        generated/src/FiniteChoice.cpp
+        generated/src/GoldenCarrot.cpp
+        generated/src/MoveableThing.cpp
+        generated/src/Player.cpp
+        generated/src/Saw.cpp
+        generated/src/Thing.cpp
+        generated/src/Trap.cpp
 )
 
 ###############################################################################
